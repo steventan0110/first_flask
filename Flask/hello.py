@@ -3,6 +3,7 @@ from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from flask_script import Manager, Shell
 from flask_wtf import Form
+from flask_migrate import Migrate, MigrateCommand
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from wtforms.validators import Required
@@ -13,11 +14,16 @@ app.config['SECRET_KEY'] = 'hard to guess string'
 app.config['SQLALCHEMY_DATABASE_URI'] = \
     'mysql+mysqldb://root:twt123456@localhost:3306/sqlalchemy'
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False #suppress warning
 
 #utilize bootstrap and mysql
 bootstrap = Bootstrap(app)
 db = SQLAlchemy(app)
 manager = Manager(app)
+
+#DB migration
+migrate = Migrate(app,db)
+manager.add_command('db', MigrateCommand)
 
 #Form definition
 class NameForm(Form):
@@ -40,8 +46,6 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.username
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-
-
 
 
 @app.route('/user/<name>')
@@ -69,19 +73,20 @@ def index():
             session['known'] = False
         else:
             session['known'] = True
+
+        old_name = session.get('name')
         session['name'] = form.name.data
+        if old_name is not None and old_name != form.name.data:
+            #flash status update message for user
+            flash("Looks like you have changed your name")
         form.name.data = ''
-        # old_name = session.get('name')
-        # if old_name is not None and old_name != form.name.data:
-        #     #flash status update message for user
-        #     flash("Looks like you have changed your name")
-        # session['name'] = form.name.data
         return redirect(url_for('index'))
     return render_template('index.html',
                            form=form,
                            name=session.get('name'),
                            known=session.get('known', False))
 
+#display app information through shell command
 def make_shell_context():
     return dict(app=app, db=db, User=User, Role=Role)
 manager.add_command("shell", Shell(make_context=make_shell_context))
