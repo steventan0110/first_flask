@@ -8,6 +8,7 @@ class Config:
     FLASKY_MAIL_SUBJECT_PREFIX = '[Flasky]'
     FLASKY_MAIL_SENDER = 'Flasky Admin <steventan0110@gmail.com>'
     FLASKY_ADMIN = os.environ.get('FLASKY_ADMIN')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     @staticmethod
     def init_app(app):
@@ -29,7 +30,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = \
-        'mysql+mysqldb://root:twt123456@localhost:3306/sqlalchemy-test'
+        'mysql+mysqldb://root:twt123456@localhost:3306/sqlalchemy_test'
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = \

@@ -21,7 +21,7 @@ def index():
                            'mail/new_user', user=user)
         else:
             session['known'] = True
-
+        print("email sent")
         old_name = session.get('name')
         session['name'] = form.name.data
         if old_name is not None and old_name != form.name.data:
