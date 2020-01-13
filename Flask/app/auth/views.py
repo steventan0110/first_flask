@@ -7,7 +7,12 @@ from ..models import User
 from ..email import send_email
 from .forms import LoginForm, RegistrationForm
 
-
+@auth.before_app_request
+def before_request():
+    if current_user.is_authenticated \
+        and not current_user.confirmed \
+            and request.endpoint[:5] != 'auth.':
+        return redirect(url_for('auth.unconfirmed'))
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
@@ -52,13 +57,6 @@ def confirm(token):
         flash('The confirmation link is invalid or has expired.')
     return redirect(url_for('main.index'))
 
-
-@auth.before_app_request
-def before_request():
-    if current_user.is_authenticated \
-        and not current_user.confirmed \
-            and request.endpoint[:5] != 'auth.':
-        return redirect(url_for('auth.unconfirmed'))
 
 @auth.route('/unconfirmed')
 def unconfirmed():
